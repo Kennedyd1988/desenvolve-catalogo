@@ -1,0 +1,586 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- PWA: manifest e ícones (sem isso o navegador não oferece a instalação) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1565C0">
+<link rel="icon" type="image/png" href="icon-192.png">
+<!-- iPhone não lê ícone/nome do manifest, precisa destas tags próprias -->
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Desenvolve">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Desenvolve - Catálogo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#FAFAFA;--surface:#fff;--fg:#222;--fg2:#777;
+  --green:#4CAF50;--blue:#1565C0;--gold:#F9A825;--red:#E53935;--pink:#EC407A;
+  --accent:var(--blue);--accent2:var(--green);--accent3:var(--gold);--accent4:var(--red);--accent5:var(--pink);
+  --border:#E8E8E8;--radius:14px;
+  --font:'Nunito',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111;--surface:#1C1C1E;--fg:#F0F0F0;--fg2:#999;
+  --border:#2E2E2E;color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#111;--surface:#1C1C1E;--fg:#F0F0F0;--fg2:#999;
+  --border:#2E2E2E;color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0;line-height:1.5;-webkit-font-smoothing:antialiased;}
+*{box-sizing:border-box;margin:0;padding:0;}
+.app{max-width:640px;margin:0 auto;padding-bottom:100px;}
+
+/* Brand header */
+.brand-header{text-align:center;padding:16px 0 8px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;border-bottom:2px solid var(--border);}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);}
+.brand-logo{height:48px;object-fit:contain;}
+.brand-sub{font-size:11px;color:var(--fg2);letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-top:2px;}
+
+/* Color bar */
+.color-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:8px;}
+.color-bar span{flex:1;}
+.cb-green{background:var(--green);} .cb-blue{background:var(--blue);} .cb-gold{background:var(--gold);} .cb-red{background:var(--red);} .cb-pink{background:var(--pink);}
+
+/* Stats */
+.stats-row{display:flex;gap:8px;margin-top:12px;overflow-x:auto;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;flex:1;min-width:0;text-align:center;transition:transform .2s;}
+.stat:hover{transform:translateY(-2px);}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg2);font-weight:700;}
+.stat-value{font-family:var(--mono);font-size:20px;font-weight:800;}
+
+/* Toolbar */
+.toolbar{display:flex;gap:8px;margin-top:12px;}
+.search-box{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:14px;font-family:var(--font);color:var(--fg);outline:none;transition:border-color .2s;}
+.search-box:focus{border-color:var(--accent);}
+.search-box::placeholder{color:var(--fg2);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--radius);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:10px 16px;white-space:nowrap;transition:transform .15s,opacity .15s;}
+.btn:active{transform:scale(.96);opacity:.8;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-pink{background:var(--pink);color:#fff;}
+.btn-outline{background:var(--surface);color:var(--fg);border:1px solid var(--border);}
+.btn-sm{padding:6px 12px;font-size:13px;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin-top:12px;border-bottom:2px solid var(--border);}
+.tab{padding:8px 16px;font-size:13px;font-weight:700;color:var(--fg2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);transition:color .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Product list */
+.product-list{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;display:flex;gap:12px;align-items:center;transition:transform .2s,box-shadow .2s;}
+.product-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08);}
+.product-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--bg);flex-shrink:0;border:1px solid var(--border);}
+.product-thumb-placeholder{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--blue));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;}
+.product-info{flex:1;min-width:0;}
+.product-name{font-weight:700;font-size:15px;}
+.product-cat{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg2);margin-top:1px;}
+.product-price{font-size:14px;color:var(--accent);font-family:var(--mono);font-weight:700;margin-top:2px;}
+.product-stock{font-family:var(--mono);font-size:13px;font-weight:800;white-space:nowrap;padding:4px 10px;border-radius:8px;flex-shrink:0;}
+.stock-ok{background:rgba(76,175,80,.12);color:var(--green);}
+.stock-low{background:rgba(249,168,37,.12);color:var(--gold);}
+.stock-out{background:rgba(229,57,53,.12);color:var(--red);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));animation:slideUp .3s cubic-bezier(.16,1,.3,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:none;border:none;font-size:24px;color:var(--fg2);cursor:pointer;padding:4px;line-height:1;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--fg2);margin-bottom:5px;}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:15px;font-family:var(--font);color:var(--fg);outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-row{display:flex;gap:10px;}.form-row>*{flex:1;min-width:0;}
+
+/* Photo upload */
+.photo-upload-area{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;overflow:hidden;}
+.photo-upload-area:hover{border-color:var(--accent);background:rgba(21,101,192,.04);}
+.photo-upload-area input[type="file"]{display:none;}
+.photo-upload-area img{max-width:100%;max-height:160px;border-radius:10px;object-fit:contain;}
+.photo-upload-label{font-size:13px;color:var(--fg2);}
+.photo-upload-icon{font-size:28px;margin-bottom:4px;}
+
+.movement-btns{display:flex;gap:8px;margin-top:8px;}
+
+/* History */
+.history-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.history-item:last-child{border-bottom:none;}
+.history-badge{font-family:var(--mono);font-size:13px;font-weight:800;padding:3px 8px;border-radius:8px;flex-shrink:0;}
+.badge-in{background:rgba(76,175,80,.12);color:var(--green);}
+.badge-out{background:rgba(229,57,53,.12);color:var(--red);}
+.history-info{flex:1;min-width:0;}
+.history-product{font-weight:700;}
+.history-date{font-size:12px;color:var(--fg2);font-family:var(--mono);}
+.history-note{font-size:12px;color:var(--fg2);margin-top:2px;}
+
+/* Empty & misc */
+.empty{text-align:center;padding:40px 20px;color:var(--fg2);}
+.empty-icon{font-size:40px;margin-bottom:8px;}
+.empty-text{font-size:14px;}
+.delete-btn{background:none;border:none;color:var(--red);font-size:13px;font-family:var(--font);font-weight:700;cursor:pointer;padding:6px 0;margin-top:8px;}
+.pdf-generating{opacity:.5;pointer-events:none;}
+
+/* Order section in modal */
+.order-section{background:var(--bg);border-radius:12px;padding:14px;margin-top:14px;}
+.order-section h3{font-size:14px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.order-qty-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.order-qty-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--surface);font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.order-qty-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.order-qty-val{font-family:var(--mono);font-size:20px;font-weight:800;min-width:40px;text-align:center;}
+.order-total{font-size:13px;color:var(--fg2);font-family:var(--mono);}
+.whatsapp-btn{background:#25D366;color:#fff;width:100%;margin-top:10px;font-size:15px;border-radius:12px;padding:12px;}
+.whatsapp-btn:hover{background:#1DA851;}
+
+/* Order config in settings */
+.settings-section{margin-top:14px;padding:14px;background:var(--bg);border-radius:12px;border:1px solid var(--border);}
+.settings-section h3{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:8px;}
+
+/* Botão fixo de instalação: canto superior direito, fora do caminho da busca
+   e dos botões; fica abaixo das janelas (z-index 50) para não cobri-las */
+.btn-instalar{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:12px;z-index:20;
+  background:var(--accent);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:12px;
+  font-weight:800;font-family:var(--font);cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);}
+.btn-instalar:focus{outline:2px solid var(--accent);outline-offset:2px;}
+/* Janela de instruções (iPhone e navegadores sem instalação automática) */
+.modal-instalar{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding:16px;}
+.modal-instalar .caixa{background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:420px;margin-bottom:env(safe-area-inset-bottom,0px);}
+.modal-instalar h3{font-size:18px;font-weight:800;margin-bottom:10px;}
+.modal-instalar ol{padding-left:20px;font-size:14px;line-height:1.7;color:var(--fg2);margin-bottom:16px;}
+@media(prefers-reduced-motion:reduce){.modal{animation:none;}}
+</style>
+
+<div class="app" id="app">
+  <div class="brand-header">
+    <img class="brand-logo" id="brand-logo" alt="Desenvolve" src="data:image/jpeg;base64,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">
+    <div class="brand-sub">Catálogo de Produtos</div>
+    <div class="color-bar">
+      <span class="cb-green"></span><span class="cb-blue"></span><span class="cb-gold"></span><span class="cb-red"></span><span class="cb-pink"></span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-label">Produtos</div><div class="stat-value" id="stat-total">0</div></div>
+      <div class="stat"><div class="stat-label">Em estoque</div><div class="stat-value" id="stat-stock" style="color:var(--green)">0</div></div>
+      <div class="stat"><div class="stat-label">Baixo</div><div class="stat-value" id="stat-low" style="color:var(--gold)">0</div></div>
+    </div>
+    <div class="toolbar">
+      <input type="text" class="search-box" id="search" placeholder="Buscar produto...">
+      <button class="btn btn-outline" onclick="generatePDF()" id="pdf-btn" style="padding:10px 12px" title="Gerar catálogo PDF">&#128196;</button>
+      <button class="btn btn-outline" onclick="openSettingsModal()" style="padding:10px 12px" title="Configurações">&#9881;</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Novo</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="products" onclick="switchTab('products',this)">Produtos</button>
+      <button class="tab" data-tab="history" onclick="switchTab('history',this)">Movimentações</button>
+    </div>
+  </div>
+  <div id="tab-products" class="product-list"></div>
+  <div id="tab-history" style="display:none;margin-top:12px;"></div>
+</div>
+<div id="modal-root" hidden></div>
+
+<!-- Botão de instalação (fixo; some quando o app já está instalado) -->
+<button class="btn-instalar" id="btn-instalar" onclick="instalarApp()">⬇ Instalar app</button>
+<div class="modal-instalar" id="modal-instalar" hidden onclick="if(event.target===this)fecharModalInstalar()">
+  <div class="caixa">
+    <h3>📲 Instalar no celular</h3>
+    <ol id="passos-instalar"></ol>
+    <button class="btn btn-primary" style="width:100%" onclick="fecharModalInstalar()">Entendi</button>
+  </div>
+</div>
+
+<script>
+(function(){
+let products=[],movements=[],db=null,assets=null,downloads=null;
+const LOW=5;
+let whatsappNumber='';
+let storeName='Desenvolve';
+
+// Logo base64 for PDF
+const LOGO_B64="data:image/jpeg;base64,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";
+
+try{ whatsappNumber=localStorage.getItem('cat_whatsapp')||''; storeName=localStorage.getItem('cat_storename')||'Desenvolve'; }catch(e){}
+
+async function init(){
+  try{db=await window.claude?.use("db")}catch(e){db=null}
+  try{assets=await window.claude?.use("assets")}catch(e){assets=null}
+  try{downloads=await window.claude?.use("downloads")}catch(e){downloads=null}
+  // Fora do Claude (GitHub Pages) não existe "downloads": o PDF é salvo direto pelo jsPDF, então o botão continua visível
+  if(db){
+    db.collection("products").orderBy("name","asc").onSnapshot(s=>{
+      products=s.docs.filter(d=>d.exists).map(d=>({id:d.id,...d.data()}));render();
+    },()=>fallbackToLocal());
+    db.collection("movements").orderBy("date","desc").limit(100).onSnapshot(s=>{
+      movements=s.docs.filter(d=>d.exists).map(d=>({id:d.id,...d.data()}));render();
+    },()=>{});
+    // Load settings from db
+    db.collection("settings").doc("store").onSnapshot(s=>{
+      if(s.exists){
+        const d=s.data();
+        if(d.whatsapp)whatsappNumber=d.whatsapp;
+        if(d.name)storeName=d.name;
+      }
+    },()=>{});
+  }else{fallbackToLocal()}
+  document.getElementById("search").addEventListener("input",render);
+}
+
+function fallbackToLocal(){
+  db=null;
+  try{products=JSON.parse(localStorage.getItem("cat_products")||"[]");movements=JSON.parse(localStorage.getItem("cat_movements")||"[]")}catch(e){products=[];movements=[]}
+  render();
+}
+function saveLocal(){try{localStorage.setItem("cat_products",JSON.stringify(products));localStorage.setItem("cat_movements",JSON.stringify(movements))}catch(e){}}
+
+async function uploadPhoto(file){if(!assets||!file)return null;try{const r=await assets.upload(file);return r.id}catch(e){return null}}
+function photoUrl(id){return id?"/_blob/"+id:null}
+// Reduz a foto no próprio navegador (máx. 600px, JPEG) antes de guardar: fora do Claude as fotos ficam
+// no armazenamento do navegador (~5 MB no total) e uma foto de celular original estoura esse limite sozinha
+function fileToDataUri(f){return new Promise(r=>{const rd=new FileReader();rd.onerror=()=>r(null);rd.onload=()=>{
+  const img=new Image();img.onerror=()=>r(rd.result);img.onload=()=>{
+    const MAX=600,esc=Math.min(1,MAX/Math.max(img.width,img.height));
+    const c=document.createElement("canvas");c.width=Math.round(img.width*esc);c.height=Math.round(img.height*esc);
+    const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);
+    r(c.toDataURL("image/jpeg",0.7));};img.src=rd.result;};rd.readAsDataURL(f)})}
+
+// CRUD
+async function addProduct(data,photoFile){
+  const id=genId();
+  let photoId=null;
+  if(photoFile&&assets)photoId=await uploadPhoto(photoFile);
+  else if(photoFile&&!assets)photoId=await fileToDataUri(photoFile);
+  const p={name:data.name,category:data.category||"",stock:parseInt(data.stock)||0,price:parseFloat(data.price)||0,photoId:photoId||"",createdAt:new Date().toISOString()};
+  if(db)await db.collection("products").doc(id).set(p);
+  else{products.push({id,...p});saveLocal();render()}
+}
+
+async function updateProduct(id,data,photoFile){
+  let photoId=data.photoId||"";
+  if(photoFile&&assets){const n=await uploadPhoto(photoFile);if(n)photoId=n}
+  else if(photoFile&&!assets)photoId=await fileToDataUri(photoFile);
+  const u={...data,photoId};delete u.id;
+  if(db)await db.collection("products").doc(id).set(u);
+  else{const i=products.findIndex(p=>p.id===id);if(i>=0)products[i]={id,...u};saveLocal();render()}
+}
+
+async function deleteProduct(id){
+  if(db)await db.collection("products").doc(id).delete();
+  else{products=products.filter(p=>p.id!==id);movements=movements.filter(m=>m.productId!==id);saveLocal();render()}
+}
+
+async function addMovement(pid,type,qty,note){
+  const p=products.find(x=>x.id===pid);if(!p)return;
+  const ns=type==="entrada"?p.stock+qty:Math.max(0,p.stock-qty);
+  const m={productId:pid,productName:p.name,type,qty,note:note||"",date:new Date().toISOString(),stockBefore:p.stock,stockAfter:ns};
+  if(db){await db.collection("movements").doc(genId()).set(m);await db.collection("products").doc(pid).update({stock:ns})}
+  else{movements.unshift({id:genId(),...m});p.stock=ns;saveLocal();render()}
+}
+
+// Render
+function render(){
+  const q=(document.getElementById("search").value||"").toLowerCase();
+  const f=products.filter(p=>!q||p.name.toLowerCase().includes(q)||(p.category||"").toLowerCase().includes(q));
+  document.getElementById("stat-total").textContent=products.length;
+  document.getElementById("stat-stock").textContent=products.reduce((s,p)=>s+(p.stock||0),0);
+  document.getElementById("stat-low").textContent=products.filter(p=>(p.stock||0)<=LOW&&(p.stock||0)>0).length;
+
+  const el=document.getElementById("tab-products");
+  if(!f.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">&#128230;</div><div class="empty-text">'+(products.length===0?'Nenhum produto cadastrado.<br>Toque em <b>+ Novo</b> para começar.':'Nenhum produto encontrado.')+'</div></div>';
+  }else{
+    el.innerHTML=f.map(p=>{
+      const cls=p.stock<=0?"stock-out":p.stock<=LOW?"stock-low":"stock-ok";
+      const lbl=p.stock<=0?"Esgotado":p.stock+" un.";
+      const src=p.photoId?(p.photoId.startsWith("data:")?p.photoId:photoUrl(p.photoId)):null;
+      const th=src?'<img class="product-thumb" src="'+at(src)+'" alt="">':'<div class="product-thumb-placeholder">&#128247;</div>';
+      return '<div class="product-card" onclick="openProductModal(\''+p.id+'\')">'+th+'<div class="product-info"><div class="product-name">'+es(p.name)+'</div>'+(p.category?'<div class="product-cat">'+es(p.category)+'</div>':'')+(p.price?'<div class="product-price">R$ '+p.price.toFixed(2)+'</div>':'')+'</div><div class="product-stock '+cls+'">'+lbl+'</div></div>';
+    }).join("");
+  }
+
+  const h=document.getElementById("tab-history");
+  if(!movements.length){h.innerHTML='<div class="empty"><div class="empty-icon">&#128203;</div><div class="empty-text">Nenhuma movimentação registrada.</div></div>'}
+  else{h.innerHTML=movements.map(m=>{const isIn=m.type==="entrada";return '<div class="history-item"><div class="history-badge '+(isIn?"badge-in":"badge-out")+'">'+(isIn?"+":"-")+m.qty+'</div><div class="history-info"><div class="history-product">'+es(m.productName)+'</div><div class="history-date">'+fmtDate(m.date)+' &middot; '+m.stockBefore+' &rarr; '+m.stockAfter+' un.</div>'+(m.note?'<div class="history-note">'+es(m.note)+'</div>':'')+'</div></div>'}).join("")}
+}
+
+window.switchTab=function(t,b){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("tab-products").style.display=t==="products"?"":"none";document.getElementById("tab-history").style.display=t==="history"?"":"none"};
+
+// Modals
+function showModal(h){const r=document.getElementById("modal-root");r.innerHTML='<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">'+h+'</div></div>';r.hidden=false}
+window.closeModal=function(){const r=document.getElementById("modal-root");r.hidden=true;r.innerHTML=""};
+
+window.openAddModal=function(){
+  showModal('<h2>Novo Produto <button class="modal-close" onclick="closeModal()">&times;</button></h2><form id="add-form" onsubmit="handleAdd(event)"><div class="form-group"><label class="form-label">Foto do produto</label><div class="photo-upload-area" id="photo-area-add" onclick="document.getElementById(\'f-photo\').click()"><input type="file" id="f-photo" accept="image/*" onchange="previewPhoto(this,\'photo-area-add\')"><div class="photo-upload-icon">&#128247;</div><div class="photo-upload-label">Toque para adicionar foto</div></div></div><div class="form-group"><label class="form-label" for="f-name">Nome do produto</label><input class="form-input" id="f-name" required autocomplete="off"></div><div class="form-row"><div class="form-group"><label class="form-label" for="f-cat">Categoria</label><input class="form-input" id="f-cat" autocomplete="off"></div><div class="form-group"><label class="form-label" for="f-price">Preço (R$)</label><input class="form-input" id="f-price" type="number" step="0.01" min="0" inputmode="decimal"></div></div><div class="form-group"><label class="form-label" for="f-stock">Estoque inicial</label><input class="form-input" id="f-stock" type="number" min="0" inputmode="numeric" value="0"></div><button class="btn btn-primary" style="width:100%;margin-top:6px">Cadastrar produto</button></form>');
+};
+
+window.previewPhoto=function(input,areaId){
+  const file=input.files&&input.files[0];if(!file)return;
+  const area=document.getElementById(areaId);const reader=new FileReader();
+  reader.onload=function(e){area.innerHTML='<input type="file" id="'+input.id+'" accept="image/*" onchange="previewPhoto(this,\''+areaId+'\')" style="display:none"><img src="'+e.target.result+'" alt="Preview"><div class="photo-upload-label" style="margin-top:6px">Toque para trocar</div>';const ni=document.getElementById(input.id);const dt=new DataTransfer();dt.items.add(file);ni.files=dt.files};
+  reader.readAsDataURL(file);
+};
+
+window.handleAdd=async function(e){
+  e.preventDefault();const pi=document.getElementById("f-photo");const file=pi&&pi.files&&pi.files[0];
+  await addProduct({name:document.getElementById("f-name").value.trim(),category:document.getElementById("f-cat").value.trim(),price:document.getElementById("f-price").value,stock:document.getElementById("f-stock").value},file||null);
+  closeModal();
+};
+
+window.openProductModal=function(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const cls=p.stock<=0?"stock-out":p.stock<=LOW?"stock-low":"stock-ok";
+  const src=p.photoId?(p.photoId.startsWith("data:")?p.photoId:photoUrl(p.photoId)):null;
+  const img=src?'<img src="'+at(src)+'" style="width:100%;max-height:200px;object-fit:contain;border-radius:12px;margin-bottom:12px" alt="">':'';
+  const hasWA=whatsappNumber&&whatsappNumber.length>5;
+
+  let orderHTML='';
+  if(hasWA&&p.price>0&&p.stock>0){
+    orderHTML='<div class="order-section"><h3>&#128722; Fazer Pedido</h3><div class="order-qty-row"><button class="order-qty-btn" onclick="changeOrderQty(-1)">-</button><span class="order-qty-val" id="order-qty">1</span><button class="order-qty-btn" onclick="changeOrderQty(1)">+</button><span class="order-total" id="order-total">R$ '+p.price.toFixed(2)+'</span></div><button class="btn whatsapp-btn" onclick="sendWhatsAppOrder(\''+id+'\')">&#128172; Enviar Pedido via WhatsApp</button></div>';
+  }
+
+  showModal('<h2>'+es(p.name)+' <button class="modal-close" onclick="closeModal()">&times;</button></h2>'+img+(p.category?'<div class="product-cat" style="margin-bottom:8px">'+es(p.category)+'</div>':'')+'<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="product-stock '+cls+'" style="font-size:16px">'+p.stock+' un.</div>'+(p.price?'<div class="product-price" style="margin:0">R$ '+p.price.toFixed(2)+'</div>':'')+'</div><div class="form-label" style="margin-bottom:6px">Movimentação de estoque</div><div class="form-row" style="margin-bottom:8px"><div class="form-group" style="margin:0"><input class="form-input" id="m-qty" type="number" min="1" value="1" inputmode="numeric" placeholder="Qtd"></div><div class="form-group" style="margin:0;flex:2"><input class="form-input" id="m-note" placeholder="Observação" autocomplete="off"></div></div><div class="movement-btns"><button class="btn btn-green btn-sm" style="flex:1" onclick="handleMove(\''+id+'\',\'entrada\')">&#8593; Entrada</button><button class="btn btn-red btn-sm" style="flex:1" onclick="handleMove(\''+id+'\',\'saida\')">&#8595; Saída</button></div>'+orderHTML+'<button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px" onclick="openEditModal(\''+id+'\')">Editar produto</button><button class="delete-btn" onclick="handleDelete(\''+id+'\')">Excluir produto</button>');
+  window._orderProductId=id;window._orderPrice=p.price;
+};
+
+window.changeOrderQty=function(d){
+  const el=document.getElementById("order-qty");if(!el)return;
+  let v=parseInt(el.textContent)||1;v=Math.max(1,v+d);el.textContent=v;
+  const t=document.getElementById("order-total");if(t)t.textContent="R$ "+(v*window._orderPrice).toFixed(2);
+};
+
+window.sendWhatsAppOrder=function(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const qty=parseInt(document.getElementById("order-qty")?.textContent)||1;
+  const total=(qty*p.price).toFixed(2);
+  const msg=encodeURIComponent("Olá! Gostaria de fazer um pedido:\n\n*"+p.name+"*\nQuantidade: "+qty+"\nValor total: R$ "+total+"\n\nAguardo confirmação!");
+  const num=whatsappNumber.replace(/\D/g,'');
+  window.open("https://wa.me/"+num+"?text="+msg,"_blank");
+};
+
+window.handleMove=async function(id,t){const q=parseInt(document.getElementById("m-qty").value)||0;if(q<=0)return;await addMovement(id,t,q,document.getElementById("m-note").value.trim());closeModal()};
+
+window.openEditModal=function(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const src=p.photoId?(p.photoId.startsWith("data:")?p.photoId:photoUrl(p.photoId)):null;
+  const pi=src?'<input type="file" id="e-photo" accept="image/*" onchange="previewPhoto(this,\'photo-area-edit\')" style="display:none"><img src="'+at(src)+'" alt=""><div class="photo-upload-label" style="margin-top:6px">Toque para trocar</div>':'<input type="file" id="e-photo" accept="image/*" onchange="previewPhoto(this,\'photo-area-edit\')" style="display:none"><div class="photo-upload-icon">&#128247;</div><div class="photo-upload-label">Toque para adicionar foto</div>';
+  showModal('<h2>Editar Produto <button class="modal-close" onclick="closeModal()">&times;</button></h2><form onsubmit="handleEdit(event,\''+id+'\')"><div class="form-group"><label class="form-label">Foto</label><div class="photo-upload-area" id="photo-area-edit" onclick="document.getElementById(\'e-photo\').click()">'+pi+'</div></div><div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="e-name" value="'+at(p.name)+'" required></div><div class="form-row"><div class="form-group"><label class="form-label">Categoria</label><input class="form-input" id="e-cat" value="'+at(p.category||"")+'"></div><div class="form-group"><label class="form-label">Preço (R$)</label><input class="form-input" id="e-price" type="number" step="0.01" min="0" value="'+(p.price||"")+'" inputmode="decimal"></div></div><button class="btn btn-primary" style="width:100%;margin-top:6px">Salvar</button></form>');
+};
+
+window.handleEdit=async function(e,id){
+  e.preventDefault();const p=products.find(x=>x.id===id);if(!p)return;
+  const pi=document.getElementById("e-photo");const file=pi&&pi.files&&pi.files[0];
+  await updateProduct(id,{name:document.getElementById("e-name").value.trim(),category:document.getElementById("e-cat").value.trim(),price:parseFloat(document.getElementById("e-price").value)||0,stock:p.stock,photoId:p.photoId||"",createdAt:p.createdAt||""},file||null);
+  closeModal();
+};
+
+window.handleDelete=function(id){const p=products.find(x=>x.id===id);if(!p)return;showModal('<h2 style="color:var(--red)">Excluir produto? <button class="modal-close" onclick="closeModal()">&times;</button></h2><p style="margin-bottom:16px;font-size:14px">O produto <b>'+es(p.name)+'</b> será removido permanentemente.</p><div style="display:flex;gap:8px"><button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancelar</button><button class="btn btn-red" style="flex:1" onclick="confirmDelete(\''+id+'\')">Excluir</button></div>')};
+window.confirmDelete=async function(id){await deleteProduct(id);closeModal()};
+
+// Settings
+window.openSettingsModal=function(){
+  showModal('<h2>&#9881; Configurações <button class="modal-close" onclick="closeModal()">&times;</button></h2><form onsubmit="handleSettings(event)"><div class="settings-section"><h3>&#128722; Link de Pedido (WhatsApp)</h3><div class="form-group"><label class="form-label">Número WhatsApp (com DDD)</label><input class="form-input" id="s-whatsapp" value="'+at(whatsappNumber)+'" placeholder="5585999999999" inputmode="tel"></div><div class="form-group"><label class="form-label">Nome da loja</label><input class="form-input" id="s-name" value="'+at(storeName)+'" placeholder="Desenvolve"></div></div><button class="btn btn-primary" style="width:100%;margin-top:14px">Salvar configurações</button></form>');
+};
+
+window.handleSettings=async function(e){
+  e.preventDefault();
+  whatsappNumber=document.getElementById("s-whatsapp").value.trim();
+  storeName=document.getElementById("s-name").value.trim()||'Desenvolve';
+  try{localStorage.setItem('cat_whatsapp',whatsappNumber);localStorage.setItem('cat_storename',storeName)}catch(e){}
+  if(db){try{await db.collection("settings").doc("store").set({whatsapp:whatsappNumber,name:storeName})}catch(e){}}
+  closeModal();
+};
+
+// PDF
+async function loadImgB64(src){try{const r=await fetch(src);const b=await r.blob();return new Promise(res=>{const rd=new FileReader();rd.onload=()=>res(rd.result);rd.onerror=()=>res(null);rd.readAsDataURL(b)})}catch(e){return null}}
+
+window.generatePDF=async function(){
+  if(!products.length)return;
+  const btn=document.getElementById("pdf-btn");btn.classList.add("pdf-generating");btn.textContent="...";
+  try{
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pw=210,ph=297,m=12,uw=pw-m*2;
+    const now=new Date();
+    const ds=now.toLocaleDateString("pt-BR")+" "+now.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    const sorted=[...products].sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+
+    // Preload images
+    const ic={};
+    for(const p of sorted){if(p.photoId){const s=p.photoId.startsWith("data:")?p.photoId:photoUrl(p.photoId);if(s)ic[p.id]=await loadImgB64(s)}}
+
+    // Brand colors from logo
+    const brandColors=[[76,175,80],[21,101,192],[249,168,37],[229,57,53],[236,64,122]];
+    const cols=2,gap=6,colW=(uw-gap)/cols,itemH=64,imgS=36,headerH=40;
+
+    function drawHeader(pg){
+      // Gradient-like header with brand colors
+      const bh=30;
+      doc.setFillColor(21,101,192);
+      doc.rect(0,0,pw,bh,"F");
+      // Color accent bar
+      const bw=pw/5;
+      brandColors.forEach((c,i)=>{doc.setFillColor(c[0],c[1],c[2]);doc.rect(bw*i,bh,bw,3,"F")});
+
+      // Logo
+      try{doc.addImage(LOGO_B64,"JPEG",m,4,40,22,undefined,"FAST")}catch(e){}
+
+      // Title
+      doc.setFontSize(16);doc.setFont("helvetica","bold");doc.setTextColor(255);
+      doc.text(storeName.toUpperCase(),m+44,14);
+      doc.setFontSize(9);doc.setFont("helvetica","normal");
+      doc.text("CATÁLOGO DE PRODUTOS",m+44,20);
+      doc.setFontSize(8);
+      doc.text(ds,pw-m,14,{align:"right"});
+      doc.text("Pág. "+pg,pw-m,20,{align:"right"});
+      doc.setTextColor(0);
+    }
+
+    function drawFooter(pg,tp){
+      // Color bar at bottom
+      const bw=pw/5,by=ph-8;
+      brandColors.forEach((c,i)=>{doc.setFillColor(c[0],c[1],c[2]);doc.rect(bw*i,by,bw,8,"F")});
+      doc.setFontSize(7);doc.setTextColor(255);
+      const waDisp=whatsappNumber?("WhatsApp: "+whatsappNumber):"";
+      doc.text(storeName+(waDisp?" | ":"")+waDisp,pw/2,ph-3.5,{align:"center"});
+      // General order link in footer
+      if(waNum){
+        const genMsg=encodeURIComponent("Olá! Vi o catálogo da "+storeName+" e gostaria de fazer um pedido.");
+        const genUrl="https://wa.me/"+waNum+"?text="+genMsg;
+        doc.setFontSize(8);doc.setFont("helvetica","bold");
+        const fTxt="Clique aqui para fazer seu pedido";
+        const fW=doc.getTextWidth(fTxt);
+        doc.textWithLink(fTxt,(pw-fW)/2,ph-0.8,{url:genUrl});
+      }
+      doc.setTextColor(0);
+    }
+
+    const waNum=whatsappNumber?whatsappNumber.replace(/\D/g,''):'';
+    let idx=0,pageNum=1;
+    drawHeader(pageNum);
+
+    while(idx<sorted.length){
+      const startY=headerH;const endY=ph-12;const rows=Math.floor((endY-startY)/itemH);
+      for(let row=0;row<rows&&idx<sorted.length;row++){
+        for(let col=0;col<cols&&idx<sorted.length;col++){
+          const p=sorted[idx];const num=idx+1;
+          const x=m+col*(colW+gap);const y=startY+row*itemH;
+
+          // Card bg
+          doc.setFillColor(250,250,250);doc.setDrawColor(220);
+          doc.roundedRect(x,y,colW,itemH-3,3,3,"FD");
+
+          // Number badge with brand color
+          const bc=brandColors[num%brandColors.length];
+          doc.setFillColor(bc[0],bc[1],bc[2]);
+          doc.roundedRect(x+2,y+2,10,10,2,2,"F");
+          doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(255);
+          doc.text(String(num).padStart(2,"0"),x+7,y+9,{align:"center"});
+          doc.setTextColor(0);
+
+          // Photo
+          const imgD=ic[p.id];const imgX=x+14;const imgY=y+3;
+          if(imgD){try{doc.addImage(imgD,"JPEG",imgX,imgY,imgS,imgS,undefined,"FAST")}catch(e){doc.setFillColor(235);doc.rect(imgX,imgY,imgS,imgS,"F");doc.setFontSize(7);doc.setTextColor(160);doc.text("Sem foto",imgX+imgS/2,imgY+imgS/2+1,{align:"center"});doc.setTextColor(0)}}
+          else{doc.setFillColor(235);doc.rect(imgX,imgY,imgS,imgS,"F");doc.setFontSize(7);doc.setTextColor(160);doc.text("Sem foto",imgX+imgS/2,imgY+imgS/2+1,{align:"center"});doc.setTextColor(0)}
+
+          // Name
+          const nameX=x+14;const nameY=imgY+imgS+4;
+          doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(40);
+          const nl=doc.splitTextToSize(p.name||"",colW-16);
+          doc.text(nl.slice(0,2),nameX,nameY);
+
+          // Price
+          if(p.price){
+            doc.setFontSize(10);doc.setFont("helvetica","bold");
+            doc.setTextColor(bc[0],bc[1],bc[2]);
+            doc.text("R$ "+p.price.toFixed(2),x+colW-4,y+12,{align:"right"});
+            doc.setTextColor(0);
+          }
+
+          // WhatsApp order link per product
+          if(waNum&&p.price>0){
+            const orderMsg=encodeURIComponent("Olá! Gostaria de pedir:\n*"+p.name+"*\nPreço: R$ "+p.price.toFixed(2)+"\n\nAguardo confirmação!");
+            const orderUrl="https://wa.me/"+waNum+"?text="+orderMsg;
+            doc.setFontSize(7);doc.setFont("helvetica","bold");
+            doc.setTextColor(37,211,102);
+            const linkTxt="Pedir via WhatsApp";
+            const linkX=x+colW-4;const linkY=y+itemH-7;
+            doc.textWithLink(linkTxt,linkX-doc.getTextWidth(linkTxt),linkY,{url:orderUrl});
+            // underline
+            const tw2=doc.getTextWidth(linkTxt);
+            doc.setDrawColor(37,211,102);doc.setLineWidth(0.3);
+            doc.line(linkX-tw2,linkY+0.5,linkX,linkY+0.5);
+            doc.setTextColor(0);doc.setDrawColor(220);
+          }
+          idx++;
+        }
+      }
+      drawFooter(pageNum,1);
+      if(idx<sorted.length){doc.addPage();pageNum++;drawHeader(pageNum)}
+    }
+
+    const nomeArq="catalogo-"+storeName.toLowerCase().replace(/\s+/g,"-")+".pdf";
+    if(downloads){const blob=doc.output("blob");try{await downloads.save({filename:nomeArq,data:blob})}catch(e){}}
+    else doc.save(nomeArq);
+  }catch(e){console.error("PDF:",e)}
+  finally{btn.classList.remove("pdf-generating");btn.textContent="\u{1F4C4}"}
+};
+
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function es(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function at(s){return(s||"").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function fmtDate(iso){try{const d=new Date(iso);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}catch(e){return iso}}
+
+init();
+})();
+
+// ===== INSTALAÇÃO (PWA) =====
+// O botão não depende só do banner automático do navegador, porque ele
+// não existe no iPhone e às vezes não aparece no Android.
+let eventoInstalacao = null;
+const btnInstalar = document.getElementById('btn-instalar');
+// iPad recente se identifica como Mac, por isso o teste de toque
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function appJaInstalado() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+if (appJaInstalado()) btnInstalar.hidden = true;
+// Guarda o evento para disparar a instalação quando o usuário clicar no botão
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); eventoInstalacao = e; });
+async function instalarApp() {
+  if (eventoInstalacao) {
+    eventoInstalacao.prompt();
+    const { outcome } = await eventoInstalacao.userChoice;
+    eventoInstalacao = null; // o evento só pode ser usado uma vez
+    if (outcome === 'accepted') btnInstalar.hidden = true;
+    return;
+  }
+  // Sem instalação automática: mostra o passo a passo manual
+  const passos = ehIOS
+    ? ['Abra este app no <b>Safari</b>.',
+       'Toque no botão <b>Compartilhar</b> (quadrado com seta para cima).',
+       'Escolha <b>Adicionar à Tela de Início</b>.',
+       'Toque em <b>Adicionar</b>.']
+    : ['Toque no menu do navegador (<b>⋮</b>), no canto superior.',
+       'Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.',
+       'Confirme em <b>Instalar</b>.'];
+  document.getElementById('passos-instalar').innerHTML = passos.map(p => '<li>' + p + '</li>').join('');
+  document.getElementById('modal-instalar').hidden = false;
+}
+function fecharModalInstalar() { document.getElementById('modal-instalar').hidden = true; }
+window.addEventListener('appinstalled', () => { btnInstalar.hidden = true; });
+// Service worker: necessário para o navegador considerar o app instalável
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+}
+</script>
+
+</body></html>
